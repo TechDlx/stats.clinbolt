@@ -44,7 +44,8 @@ pipeline/
 deploy/
   Caddyfile                 HTTPS, compression, cache and security headers
   setup_vm.sh               idempotent VM bootstrap
-  deploy.sh                 rsync site/ and pipeline/ to the VM
+  update.sh                 publish from a checkout on the VM (git flow)
+  deploy.sh                 push site/ and pipeline/ from a workstation (rsync)
   refresh.sh                rebuild, validate, publish atomically
   stats-refresh.service     systemd unit
   stats-refresh.timer       weekly schedule
@@ -174,15 +175,26 @@ ClinicalTrials.gov API quirks that the pipeline works around.
 
 ## Deployment
 
-See **[DEPLOY.md](DEPLOY.md)** for the full Oracle Cloud checklist. The short
-version, once the VM exists and DNS points at it:
+See **[DEPLOY.md](DEPLOY.md)** for the full Oracle Cloud checklist, from
+creating the instance onwards. The short version, once the VM exists, ports 80
+and 443 are open in the OCI Security List, and DNS points at it:
 
 ```bash
-scp -r deploy ubuntu@<VM_IP>:~/stats-clinbolt-deploy
-ssh ubuntu@<VM_IP> 'sudo bash ~/stats-clinbolt-deploy/setup_vm.sh'
-./deploy/deploy.sh ubuntu@<VM_IP>
-ssh ubuntu@<VM_IP> 'sudo systemctl start stats-refresh.service'
+ssh ubuntu@<VM_IP>
+git clone https://github.com/TechDlx/stats.clinbolt.git ~/stats.clinbolt
+sudo bash ~/stats.clinbolt/deploy/setup_vm.sh    # packages, Caddy, firewall, timer
+sudo bash ~/stats.clinbolt/deploy/update.sh      # publish site/ and pipeline/
+sudo systemctl start stats-refresh.service       # first data build, 10-20 min
 ```
+
+Later updates are one command:
+
+```bash
+ssh ubuntu@<VM_IP> 'sudo bash ~/stats.clinbolt/deploy/update.sh --pull'
+```
+
+`deploy/deploy.sh ubuntu@<VM_IP>` is the alternative for pushing an uncommitted
+working tree from a machine that has `rsync`.
 
 ---
 

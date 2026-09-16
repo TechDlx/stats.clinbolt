@@ -47,7 +47,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq \
   ca-certificates curl gnupg debian-keyring debian-archive-keyring \
-  apt-transport-https rsync python3 python3-venv python3-pip \
+  apt-transport-https git rsync python3 python3-venv python3-pip \
   iptables-persistent netfilter-persistent
 
 # --------------------------------------------------------------- 3. caddy
@@ -86,13 +86,22 @@ log "Creating the Python virtualenv"
 if [[ ! -x "$APP_ROOT/venv/bin/python" ]]; then
   sudo -u "$SERVICE_USER" python3 -m venv "$APP_ROOT/venv"
 fi
-if [[ -f "$APP_ROOT/pipeline/requirements.txt" ]]; then
+# When this script runs from a full checkout (the git-clone flow) the
+# requirements file is right here; otherwise fall back to whatever a previous
+# publish installed.
+REQUIREMENTS=""
+if [[ -f "$SCRIPT_DIR/../pipeline/requirements.txt" ]]; then
+  REQUIREMENTS="$SCRIPT_DIR/../pipeline/requirements.txt"
+elif [[ -f "$APP_ROOT/pipeline/requirements.txt" ]]; then
+  REQUIREMENTS="$APP_ROOT/pipeline/requirements.txt"
+fi
+
+if [[ -n "$REQUIREMENTS" ]]; then
   sudo -u "$SERVICE_USER" "$APP_ROOT/venv/bin/pip" install -q --upgrade pip
-  sudo -u "$SERVICE_USER" "$APP_ROOT/venv/bin/pip" install -q \
-    -r "$APP_ROOT/pipeline/requirements.txt"
-  log "Python dependencies installed"
+  sudo -u "$SERVICE_USER" "$APP_ROOT/venv/bin/pip" install -q -r "$REQUIREMENTS"
+  log "Python dependencies installed from $REQUIREMENTS"
 else
-  warn "no pipeline/requirements.txt yet -- run deploy.sh, then re-run this script."
+  warn "no pipeline/requirements.txt found yet -- publish the code, then re-run this script."
 fi
 
 # --------------------------------------------------------------- 6. firewall
@@ -163,7 +172,9 @@ $(printf '\033[1;32mSetup complete.\033[0m')
   Service user: ${SERVICE_USER}
 
 Next steps:
-  1. From your workstation:   ./deploy/deploy.sh ubuntu@<VM_IP>
+  1. Publish the code:
+       from a checkout on this VM:  sudo bash <repo>/deploy/update.sh
+       or from a workstation:       ./deploy/deploy.sh ubuntu@<VM_IP>
   2. Build the data the first time (takes 10-20 minutes):
          sudo systemctl start stats-refresh.service
          journalctl -u stats-refresh.service -f

@@ -17,7 +17,7 @@ console, at your domain registrar, or on the VM itself.
 - an Oracle Cloud account (the Always Free tier is enough — a card is required
   at signup for identity verification, but Always Free resources are not charged)
 - control of the `clinbolt.com` DNS zone at your registrar
-- `ssh`, `scp` and `rsync` on your own machine
+- `ssh` on your own machine (Git Bash or PowerShell on Windows both have it)
 
 ---
 
@@ -167,55 +167,58 @@ including `./deploy/deploy.sh clinbolt-stats`.
 
 ---
 
-## 6. Bootstrap the VM
+## 6. Clone the repository on the VM and bootstrap
 
-Copy the deploy scripts up and run the bootstrap. It is idempotent — re-running
-it later is how you pick up changes to the Caddyfile or the systemd units.
+The repository is public, so the VM can fetch the code itself. This is the
+recommended route: it needs no `rsync` on your own machine, and updating later
+is a `git pull`.
 
 ```bash
-scp -r deploy ubuntu@<VM_IP>:~/stats-clinbolt-deploy
-ssh ubuntu@<VM_IP> 'sudo bash ~/stats-clinbolt-deploy/setup_vm.sh'
+ssh ubuntu@<VM_IP>
+
+git clone https://github.com/TechDlx/stats.clinbolt.git ~/stats.clinbolt
+sudo bash ~/stats.clinbolt/deploy/setup_vm.sh
 ```
 
-It will:
+The bootstrap is idempotent — re-running it later is how you pick up changes to
+the Caddyfile or the systemd units.
 
-- install `rsync`, `python3-venv` and Caddy from Caddy's official apt repository
+`setup_vm.sh` will:
+
+- install `git`, `rsync`, `python3-venv` and Caddy from Caddy's official apt repository
 - create the `statsbot` service user and `/var/www/stats.clinbolt.com`
-- create the Python virtualenv at `/opt/stats-clinbolt/venv`
+- create the Python virtualenv at `/opt/stats-clinbolt/venv` and install the
+  Python dependencies from the checkout
 - **insert** ACCEPT rules for 80 and 443 **above** the image's default REJECT
   rule, then persist them with `netfilter-persistent`
 - install the Caddyfile, validate it, and start Caddy
 - install and enable the weekly refresh timer
 
-A warning about a missing `requirements.txt` on the very first run is expected —
-step 7 uploads it, and this script can be re-run afterwards.
-
 Caddy requests the certificate as soon as it starts. If DNS and ports are right,
 HTTPS works within a minute.
 
+> **Pushing from a workstation instead.** If you would rather not clone on the
+> VM, `./deploy/deploy.sh ubuntu@<VM_IP>` pushes `site/` and `pipeline/` over
+> SSH. It needs `rsync` on your own machine, which Windows does not ship by
+> default — hence the clone-on-the-VM route above.
+
 ---
 
-## 7. Deploy the site and pipeline
+## 7. Publish the code
 
-From the repository root on your own machine:
-
-```bash
-./deploy/deploy.sh ubuntu@<VM_IP>
-```
-
-This rsyncs `site/` and `pipeline/` to the VM, fixes ownership, installs the
-Python dependencies and reloads Caddy.
-
-Generated data is **not** uploaded by default — the VM builds its own in step 8,
-which keeps the published figures reproducible. On a first deploy you probably
-want the site to have data immediately rather than being empty for 20 minutes:
+Still on the VM:
 
 ```bash
-./deploy/deploy.sh ubuntu@<VM_IP> --with-data
+sudo bash ~/stats.clinbolt/deploy/update.sh
 ```
 
-That seeds it from your local build (~72 KB), and the scheduled refresh replaces
-it on its own later.
+This copies `site/` into `/var/www/stats.clinbolt.com`, `pipeline/` into
+`/opt/stats-clinbolt/pipeline`, fixes ownership, refreshes the systemd units and
+reloads Caddy. It never touches generated data, so publishing code can't clobber
+published data.
+
+The site is live at this point, but the dashboard has no data yet and will show
+its "data could not be loaded" state until step 8 finishes. That is expected.
 
 ---
 
@@ -272,7 +275,8 @@ the VM is back up.
 
 | Task | Command |
 | --- | --- |
-| Push code or content changes | `./deploy/deploy.sh ubuntu@<VM_IP>` |
+| Publish code changes (git flow) | `ssh ubuntu@<VM_IP> 'sudo bash ~/stats.clinbolt/deploy/update.sh --pull'` |
+| Publish from a workstation (needs rsync) | `./deploy/deploy.sh ubuntu@<VM_IP>` |
 | Rebuild the data now | `ssh ubuntu@<VM_IP> 'sudo systemctl start stats-refresh.service'` |
 | Watch a running refresh | `ssh ubuntu@<VM_IP> 'journalctl -u stats-refresh.service -f'` |
 | Last refresh result | `ssh ubuntu@<VM_IP> 'systemctl status stats-refresh.service'` |

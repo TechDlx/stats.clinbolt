@@ -8,7 +8,7 @@ the ClinicalTrials.gov registry. Read this before changing anything.
 ```
 site/       everything served, exactly as it appears on disk
 pipeline/   Python that turns the registry into small precomputed JSON
-deploy/     Caddy config, VM bootstrap, rsync deploy, weekly refresh
+deploy/     Caddy config, VM bootstrap, publish scripts, weekly refresh
 ```
 
 The split is the core idea: **all aggregation happens at build time**, the
