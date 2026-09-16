@@ -97,8 +97,16 @@ elif [[ -f "$APP_ROOT/pipeline/requirements.txt" ]]; then
 fi
 
 if [[ -n "$REQUIREMENTS" ]]; then
+  # pip runs as the service user, which cannot read a checkout sitting in
+  # /home/ubuntu (mode 750 on Ubuntu 24.04).  Stage the file somewhere readable
+  # rather than loosening permissions on anyone's home directory.
+  REQ_STAGED="$(mktemp /tmp/stats-requirements.XXXXXX.txt)"
+  cp "$REQUIREMENTS" "$REQ_STAGED"
+  chmod 644 "$REQ_STAGED"
+
   sudo -u "$SERVICE_USER" "$APP_ROOT/venv/bin/pip" install -q --upgrade pip
-  sudo -u "$SERVICE_USER" "$APP_ROOT/venv/bin/pip" install -q -r "$REQUIREMENTS"
+  sudo -u "$SERVICE_USER" "$APP_ROOT/venv/bin/pip" install -q -r "$REQ_STAGED"
+  rm -f "$REQ_STAGED"
   log "Python dependencies installed from $REQUIREMENTS"
 else
   warn "no pipeline/requirements.txt found yet -- publish the code, then re-run this script."
