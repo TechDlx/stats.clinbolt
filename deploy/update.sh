@@ -102,7 +102,7 @@ else
 $(printf '\033[1;33mDone, but there is no dashboard data yet.\033[0m')
 Build it now (takes 10-20 minutes):
 
-    sudo systemctl start stats-refresh.service
+    sudo systemctl start --no-block stats-refresh.service
     journalctl -u stats-refresh.service -f
 EOF
 fi

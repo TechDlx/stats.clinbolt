@@ -115,7 +115,7 @@ log "Deployed."
 cat <<EOF
 
   Site      : https://stats.clinbolt.com/
-  Rebuild   : ssh ${TARGET} 'sudo systemctl start stats-refresh.service'
+  Rebuild   : ssh ${TARGET} 'sudo systemctl start --no-block stats-refresh.service'
   Watch it  : ssh ${TARGET} 'journalctl -u stats-refresh.service -f'
   Timer     : ssh ${TARGET} 'systemctl list-timers stats-refresh.timer'
 EOF

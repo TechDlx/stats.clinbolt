@@ -249,7 +249,9 @@ A full registry pull is ~600 API pages at about one request per second, so allow
 **10–20 minutes**.
 
 ```bash
-ssh ubuntu@<VM_IP> 'sudo systemctl start stats-refresh.service'
+# --no-block returns immediately; without it, systemctl waits out the whole
+# build and a dropped SSH session makes it look like something went wrong.
+ssh ubuntu@<VM_IP> 'sudo systemctl start --no-block stats-refresh.service'
 ssh ubuntu@<VM_IP> 'journalctl -u stats-refresh.service -f'
 ```
 
@@ -298,7 +300,7 @@ the VM is back up.
 | --- | --- |
 | Publish code changes (git flow) | `ssh ubuntu@<VM_IP> 'sudo bash ~/stats.clinbolt/deploy/update.sh --pull'` |
 | Publish from a workstation (needs rsync) | `./deploy/deploy.sh ubuntu@<VM_IP>` |
-| Rebuild the data now | `ssh ubuntu@<VM_IP> 'sudo systemctl start stats-refresh.service'` |
+| Rebuild the data now | `ssh ubuntu@<VM_IP> 'sudo systemctl start --no-block stats-refresh.service'` |
 | Watch a running refresh | `ssh ubuntu@<VM_IP> 'journalctl -u stats-refresh.service -f'` |
 | Last refresh result | `ssh ubuntu@<VM_IP> 'systemctl status stats-refresh.service'` |
 | Caddy logs | `ssh ubuntu@<VM_IP> 'sudo journalctl -u caddy -n 100'` |

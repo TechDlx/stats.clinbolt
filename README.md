@@ -184,7 +184,7 @@ ssh ubuntu@<VM_IP>
 git clone https://github.com/TechDlx/stats.clinbolt.git ~/stats.clinbolt
 sudo bash ~/stats.clinbolt/deploy/setup_vm.sh    # packages, Caddy, firewall, timer
 sudo bash ~/stats.clinbolt/deploy/update.sh      # publish site/ and pipeline/
-sudo systemctl start stats-refresh.service       # first data build, 10-20 min
+sudo systemctl start --no-block stats-refresh.service   # first data build, 10-20 min
 ```
 
 Later updates are one command:

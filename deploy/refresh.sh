@@ -3,7 +3,11 @@
 # Rebuild every dashboard's data and publish it atomically.
 #
 # Run by stats-refresh.service (weekly via stats-refresh.timer), or by hand:
-#     sudo systemctl start stats-refresh.service
+#     sudo systemctl start --no-block stats-refresh.service
+#
+# This unit is Type=oneshot, so a plain 'systemctl start' blocks for the whole
+# build (10-20 minutes).  --no-block hands it to systemd and returns at once;
+# follow it with 'journalctl -u stats-refresh.service -f'.
 #
 # The build writes into a temp directory.  Nothing reaches the served site
 # until the JSON has been validated, so a failed fetch or a malformed build

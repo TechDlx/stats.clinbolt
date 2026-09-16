@@ -207,7 +207,7 @@ Next steps:
        from a checkout on this VM:  sudo bash <repo>/deploy/update.sh
        or from a workstation:       ./deploy/deploy.sh ubuntu@<VM_IP>
   2. Build the data the first time (takes 10-20 minutes):
-         sudo systemctl start stats-refresh.service
+         sudo systemctl start --no-block stats-refresh.service
          journalctl -u stats-refresh.service -f
   3. Check the site:          curl -I https://${DOMAIN}/
      Check the timer:         systemctl list-timers stats-refresh.timer
