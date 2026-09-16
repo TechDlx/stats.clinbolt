@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClinBolt Stats &mdash; Clinical trial statistics dashboards</title>
+<meta name="description" content="Open dashboards on the clinical trial landscape, rebuilt weekly from the ClinicalTrials.gov public API.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/common.css">
+</head>
+<body>
+
+<header class="site-header"></header>
+
+<main>
+  <div class="wrap">
+    <div class="page-intro">
+      <h1>Clinical trial statistics</h1>
+      <p>
+        Plain answers to structural questions about the clinical research landscape,
+        computed from the full ClinicalTrials.gov registry and refreshed weekly.
+        Every dashboard is precomputed, so filtering is instant and nothing is
+        recalculated in your browser from raw records.
+      </p>
+    </div>
+
+    <div id="cards" class="card-grid" aria-live="polite">
+      <div class="state">
+        <div class="spinner" role="status" aria-label="Loading dashboards"></div>
+        Loading dashboards&hellip;
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer"></footer>
+
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/index-page.js"></script>
+
+</body>
+</html>

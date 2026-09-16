@@ -1,0 +1,17 @@
+[Unit]
+Description=Weekly rebuild of ClinBolt Stats dashboard data
+Documentation=https://stats.clinbolt.com/
+
+[Timer]
+# Sundays at 03:30 UTC, plus up to an hour of jitter so the registry API is
+# not hit by every scheduled job in the world at exactly the same second.
+OnCalendar=Sun *-*-* 03:30:00 UTC
+RandomizedDelaySec=3600
+
+# If the VM was off when the timer was due, run once it is back up.
+Persistent=true
+
+Unit=stats-refresh.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,60 @@
+/* Overrides specific to the "How Big Are Studies?" dashboard.
+   Anything reusable belongs in /assets/css/common.css instead. */
+
+/* The histogram carries six series plus rotated band labels, so it needs more
+   vertical room than the shared default. */
+#chart-histogram {
+  height: 460px;
+}
+
+#chart-ecdf {
+  height: 440px;
+}
+
+#chart-box {
+  height: 400px;
+}
+
+/* Methodology is long-form prose; keep the measure readable. */
+#methodology h3 {
+  margin-top: 1.4rem;
+  margin-bottom: 0.35rem;
+}
+
+#methodology h3:first-child {
+  margin-top: 0;
+}
+
+#methodology p,
+#methodology ul {
+  max-width: 76ch;
+  color: var(--text-muted);
+}
+
+#methodology ul {
+  margin: 0 0 0.9rem;
+  padding-left: 1.15rem;
+}
+
+#methodology li {
+  margin-bottom: 0.35rem;
+}
+
+#methodology table.data {
+  max-width: 560px;
+}
+
+#crosstab-note {
+  max-width: 78ch;
+}
+
+@media (max-width: 720px) {
+  #chart-histogram {
+    height: 420px;
+  }
+
+  #chart-ecdf,
+  #chart-box {
+    height: 360px;
+  }
+}

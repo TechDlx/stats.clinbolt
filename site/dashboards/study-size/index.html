@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Big Are Studies? &mdash; ClinBolt Stats</title>
+<meta name="description" content="Distribution of reported enrollment sizes in clinical studies, separating estimated targets from actual enrollment and active studies from closed ones.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/common.css">
+<link rel="stylesheet" href="/dashboards/study-size/style.css">
+</head>
+<body data-dashboard-id="study-size">
+
+<header class="site-header"></header>
+
+<main>
+  <div class="wrap">
+
+    <div class="page-intro">
+      <h1>How big are studies?</h1>
+      <p>
+        <strong>Enrollment</strong> is the number of participants a study involves.
+        The registry reports it two ways, and the difference matters:
+        <strong>Estimated</strong> is the sponsor's target, usually recorded while a
+        study is still planned or running, while <strong>Actual</strong> is the number
+        the sponsor reports having enrolled. Comparing the two &mdash; and comparing
+        studies still underway against those already closed &mdash; shows both how
+        large studies really are and how far ambition drifts from outcome.
+      </p>
+    </div>
+
+    <!-- Loading and error states ------------------------------------------ -->
+    <div id="loading" class="state">
+      <div class="spinner" role="status" aria-label="Loading data"></div>
+      Loading enrollment data&hellip;
+    </div>
+
+    <div id="error" class="state state-error" hidden>
+      <strong>The dashboard data could not be loaded.</strong>
+      <span id="error-detail"></span>
+      <p class="small" style="margin-top:.6rem">
+        If you are running this site locally, build the data first:
+        <code>python pipeline/study_size/build.py --limit-pages 2</code>
+      </p>
+    </div>
+
+    <!-- Dashboard --------------------------------------------------------- -->
+    <div id="dashboard" hidden>
+
+      <section class="panel" aria-labelledby="filters-heading">
+        <div class="panel-head">
+          <h2 id="filters-heading">Filters</h2>
+          <a id="download-json" class="link-button" href="/dashboards/study-size/data/study_size.json" download>
+            Download summary JSON
+          </a>
+        </div>
+        <p class="panel-note">
+          Every chart below is computed from one precomputed file; changing a filter
+          redraws instantly without fetching anything.
+        </p>
+        <div class="controls">
+          <div class="control">
+            <label for="filter-study-type">Study type</label>
+            <select id="filter-study-type"></select>
+          </div>
+          <div class="control">
+            <label for="filter-phase">Phase</label>
+            <select id="filter-phase"></select>
+          </div>
+          <div class="checkbox">
+            <input type="checkbox" id="filter-unknown">
+            <label for="filter-unknown" style="text-transform:none;letter-spacing:0;font-weight:400">
+              Include studies with <em>Unknown</em> status
+            </label>
+          </div>
+        </div>
+        <p id="filter-summary" class="small muted" style="margin:.9rem 0 0"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="kpi-heading">
+        <h2 id="kpi-heading">At a glance</h2>
+        <p class="panel-note">
+          Medians are shown because enrollment is heavily right-skewed: a handful of
+          very large studies pull the mean far above what a typical study looks like.
+        </p>
+        <div id="kpis" class="kpi-grid"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="hist-heading">
+        <div class="panel-head">
+          <h2 id="hist-heading">Distribution of enrollment size</h2>
+          <div class="toggle-group" role="group" aria-label="Histogram value mode">
+            <button type="button" id="mode-count" aria-pressed="true">Counts</button>
+            <button type="button" id="mode-pct" aria-pressed="false">% within segment</button>
+          </div>
+        </div>
+        <p class="panel-note">
+          Counts of studies per enrollment band. The bands widen on a log scale because
+          enrollment spans several orders of magnitude. Switch to
+          <em>% within segment</em> to compare the <em>shape</em> of groups that differ
+          greatly in size.
+        </p>
+        <div id="chart-histogram" class="chart"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="sm-heading">
+        <h2 id="sm-heading">Side by side</h2>
+        <p class="panel-note">
+          The same distribution split into a grid: status down the rows, enrollment type
+          across the columns. All four panels share one vertical scale (% within segment),
+          so shapes can be read directly against each other.
+        </p>
+        <div class="small-multiples">
+          <div class="sm-cell">
+            <p class="sm-title">Active &middot; Estimated</p>
+            <div id="sm-active_estimated" class="chart-sm"></div>
+          </div>
+          <div class="sm-cell">
+            <p class="sm-title">Active &middot; Actual</p>
+            <div id="sm-active_actual" class="chart-sm"></div>
+          </div>
+          <div class="sm-cell">
+            <p class="sm-title">Closed &middot; Estimated</p>
+            <div id="sm-closed_estimated" class="chart-sm"></div>
+          </div>
+          <div class="sm-cell">
+            <p class="sm-title">Closed &middot; Actual</p>
+            <div id="sm-closed_actual" class="chart-sm"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="box-heading">
+        <h2 id="box-heading">Spread within each segment</h2>
+        <p class="panel-note">
+          Each bar spans the 25th to 75th percentile, whiskers reach the 10th and 90th,
+          and the line marks the median. Half of all studies in a segment sit inside the
+          box. Note the log scale: a box that looks narrow still covers a wide range.
+        </p>
+        <div id="chart-box" class="chart"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="ecdf-heading">
+        <h2 id="ecdf-heading">Cumulative distribution</h2>
+        <p class="panel-note">
+          Read it as &ldquo;what share of studies are at most this large?&rdquo; Hover any
+          point for the exact wording. Where a curve rises steeply, studies cluster; a
+          long flat tail on the right means a small number of very large studies.
+        </p>
+        <div id="chart-ecdf" class="chart"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="crosstab-heading">
+        <h2 id="crosstab-heading">Status against enrollment type</h2>
+        <p class="panel-note">
+          How many studies in each status group report an estimated target versus an
+          actual figure.
+        </p>
+        <div class="table-scroll">
+          <table class="data" id="crosstab">
+            <caption class="visually-hidden">Study counts by status group and enrollment type</caption>
+          </table>
+        </div>
+        <p id="crosstab-note" class="small muted" style="margin-top:.8rem"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="method-heading">
+        <h2 id="method-heading">Methodology and caveats</h2>
+        <div id="methodology"></div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer"></footer>
+
+<script src="/assets/vendor/echarts.min.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/charts-common.js"></script>
+<script src="/dashboards/study-size/app.js"></script>
+
+</body>
+</html>

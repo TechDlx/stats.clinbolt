@@ -1,0 +1,18 @@
+/* Overrides specific to this dashboard only.
+   Shared theme, layout, cards and tables live in /assets/css/common.css --
+   add to that file instead if another dashboard would want the same rule. */
+
+#chart-sample {
+  height: 400px;
+}
+
+#methodology p,
+#methodology ul {
+  max-width: 76ch;
+}
+
+@media (max-width: 720px) {
+  #chart-sample {
+    height: 340px;
+  }
+}

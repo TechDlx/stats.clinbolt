@@ -1,0 +1,27 @@
+{
+  "site": {
+    "name": "ClinBolt Stats",
+    "tagline": "Open statistics on the clinical trial landscape, rebuilt weekly from ClinicalTrials.gov."
+  },
+  "dashboards": [
+    {
+      "id": "study-size",
+      "title": "How Big Are Studies?",
+      "nav_title": "Study Size",
+      "description": "How many participants clinical studies enrol, separating the sponsor's estimated target from the actual reported number, and active studies from closed ones.",
+      "path": "/dashboards/study-size/",
+      "category": "Study design",
+      "status": "live",
+      "meta_file": "/dashboards/study-size/data/meta.json"
+    },
+    {
+      "id": "study-duration",
+      "title": "How Long Do Studies Run?",
+      "nav_title": "Study Duration",
+      "description": "Planned versus actual study duration, from start date to primary completion, broken down by phase and status.",
+      "path": "/dashboards/study-duration/",
+      "category": "Study design",
+      "status": "coming-soon"
+    }
+  ]
+}

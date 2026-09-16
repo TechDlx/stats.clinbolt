@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- TEMPLATE: copy this folder to site/dashboards/<your-dashboard>/ and
+     replace every CHANGEME marker.  See README.md, "Adding a new dashboard". -->
+<title>Dashboard Title &mdash; ClinBolt Stats</title>
+<meta name="description" content="CHANGEME: one sentence describing this dashboard.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/common.css">
+<link rel="stylesheet" href="/dashboards/_template/style.css">
+</head>
+<!-- data-dashboard-id must match the id in /dashboards.json so the nav
+     highlights the right link. -->
+<body data-dashboard-id="_template">
+
+<header class="site-header"></header>
+
+<main>
+  <div class="wrap">
+
+    <div class="page-intro">
+      <h1>Dashboard title</h1>
+      <p>
+        CHANGEME: one short paragraph saying what this dashboard measures and why
+        the distinction it draws matters. Keep it to a few sentences.
+      </p>
+    </div>
+
+    <div id="loading" class="state">
+      <div class="spinner" role="status" aria-label="Loading data"></div>
+      Loading data&hellip;
+    </div>
+
+    <div id="error" class="state state-error" hidden>
+      <strong>The dashboard data could not be loaded.</strong>
+      <span id="error-detail"></span>
+      <p class="small" style="margin-top:.6rem">
+        Build the data first: <code>python pipeline/&lt;name&gt;/build.py --limit-pages 2</code>
+      </p>
+    </div>
+
+    <div id="dashboard" hidden>
+
+      <section class="panel" aria-labelledby="filters-heading">
+        <div class="panel-head">
+          <h2 id="filters-heading">Filters</h2>
+          <a id="download-json" class="link-button" href="#" download>Download summary JSON</a>
+        </div>
+        <div class="controls">
+          <div class="control">
+            <label for="filter-example">Example filter</label>
+            <select id="filter-example"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="kpi-heading">
+        <h2 id="kpi-heading">At a glance</h2>
+        <div id="kpis" class="kpi-grid"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="chart-heading">
+        <h2 id="chart-heading">Sample chart</h2>
+        <p class="panel-note">
+          CHANGEME: say how to read this chart, not just what it shows.
+        </p>
+        <div id="chart-sample" class="chart"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="method-heading">
+        <h2 id="method-heading">Methodology and caveats</h2>
+        <div id="methodology">
+          <h3>Where the data comes from</h3>
+          <p class="muted">
+            CHANGEME: data source, retrieval date (read it from
+            <code>metadata.generated_at</code>), and how records were selected.
+          </p>
+          <h3>What is left out, and why</h3>
+          <p class="muted">
+            CHANGEME: render the exclusion counts from
+            <code>metadata.exclusions</code> so the page always matches the build.
+          </p>
+          <h3>Caveats</h3>
+          <ul class="muted">
+            <li>Registry data is sponsor-reported and not independently verified.</li>
+            <li>CHANGEME: anything specific to this dashboard's measure.</li>
+          </ul>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer"></footer>
+
+<script src="/assets/vendor/echarts.min.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/charts-common.js"></script>
+<script src="/dashboards/_template/app.js"></script>
+
+</body>
+</html>

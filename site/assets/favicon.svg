@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ClinBolt Stats">
+  <rect width="32" height="32" rx="7" fill="#0072b2"/>
+  <rect x="6"  y="18" width="4.5" height="8"  rx="1.2" fill="#ffffff" opacity=".85"/>
+  <rect x="13" y="13" width="4.5" height="13" rx="1.2" fill="#ffffff" opacity=".85"/>
+  <path d="M25.6 5.2 19.4 15.1h3.9l-1.9 8.1 6.4-10.2h-4.0z" fill="#f0e442"/>
+</svg>

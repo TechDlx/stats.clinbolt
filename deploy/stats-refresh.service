@@ -1,0 +1,43 @@
+[Unit]
+Description=Rebuild ClinBolt Stats dashboard data from ClinicalTrials.gov
+Documentation=https://stats.clinbolt.com/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/stats-clinbolt/refresh.sh
+
+# Runs as root because publishing writes into /var/www and re-owns the files to
+# the service user. NoNewPrivileges below rules out sudo, so the script must not
+# try to drop privileges itself; the sandbox directives are what contain it.
+User=root
+Group=root
+
+# A full registry pull is ~600 pages at roughly one request per second.
+TimeoutStartSec=3600
+
+# Be a good neighbour on a 1 GB Always Free VM.
+Nice=10
+IOSchedulingClass=idle
+MemoryMax=768M
+
+# Hardening: the unit only ever writes to the site root, the app root and /tmp.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/stats.clinbolt.com /opt/stats-clinbolt
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=stats-refresh
+
+[Install]
+WantedBy=multi-user.target

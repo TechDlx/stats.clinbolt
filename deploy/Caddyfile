@@ -1,0 +1,64 @@
+# Caddy site config for stats.clinbolt.com
+# Installed by setup_vm.sh to /etc/caddy/Caddyfile
+#
+# Caddy obtains and renews the TLS certificate from Let's Encrypt automatically,
+# provided ports 80 and 443 are reachable from the internet (both the OCI
+# Security List and the instance firewall must allow them -- see DEPLOY.md).
+
+stats.clinbolt.com {
+	root * /var/www/stats.clinbolt.com
+	encode zstd gzip
+
+	# --- security headers -------------------------------------------------
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "SAMEORIGIN"
+		Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+
+		# Everything is served from this origin: no CDN, no third-party scripts,
+		# and no inline <script> anywhere, so script-src stays strict.
+		# style-src keeps 'unsafe-inline' for the style attributes on the pages
+		# and the inline styles ECharts writes onto tooltips at runtime.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+		-Server
+	}
+
+	# --- caching ----------------------------------------------------------
+	# Static assets are content-stable; the vendored ECharts bundle especially.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Dashboard data is rebuilt weekly, so keep it short enough that a refresh
+	# shows up promptly.
+	@data path_regexp data ^/dashboards/.*/data/.*\.json$
+	header @data Cache-Control "public, max-age=3600, must-revalidate"
+
+	# The registry drives the nav on every page; keep it fresh.
+	@registry path /dashboards.json
+	header @registry Cache-Control "public, max-age=300, must-revalidate"
+
+	# HTML should always be revalidated so deploys take effect immediately.
+	@html path *.html /
+	header @html Cache-Control "public, max-age=0, must-revalidate"
+
+	# --- serving ----------------------------------------------------------
+	# Clean URLs: /dashboards/study-size/ serves that folder's index.html.
+	file_server
+
+	handle_errors {
+		@404 expression {err.status_code} == 404
+		rewrite @404 /404.html
+		file_server
+	}
+
+	log {
+		output file /var/log/caddy/stats.clinbolt.com.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format console
+	}
+}
