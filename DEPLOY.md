@@ -128,19 +128,40 @@ At your registrar, in the DNS records for `clinbolt.com`:
 | --- | --- | --- | --- |
 | A | `stats` | `<VM_IP>` | 300 (or the lowest offered) |
 
-Do **not** proxy the record through Cloudflare or similar for the first deploy —
-Caddy needs to answer an HTTP challenge on port 80 directly to obtain the
-certificate. You can enable proxying afterwards.
-
 Confirm from your own machine before going further:
 
 ```bash
 dig +short stats.clinbolt.com
 # must print <VM_IP>
+
+# Windows PowerShell:
+Resolve-DnsName stats.clinbolt.com -Type A | Select-Object Name,IPAddress
 ```
 
 Do not move on until that returns the right address. Every later failure looks
 the same as a DNS failure, so rule it out first.
+
+### If the domain is on Cloudflare
+
+Set the record to **DNS only** (grey cloud), not **Proxied** (orange cloud), at
+least for the first deploy.
+
+A proxied record resolves to a Cloudflare edge address such as `172.64.x.x`
+rather than your VM. Caddy's Let's Encrypt HTTP-01 challenge then fails, because
+Cloudflare terminates the connection at its edge while your origin still has no
+certificate — a chicken-and-egg that never resolves on its own. A quick way to
+spot it:
+
+```bash
+dig +short stats.clinbolt.com
+# 172.64.80.1   <- Cloudflare, not your VM: the orange cloud is on
+```
+
+Once HTTPS is working directly against the VM, you can turn proxying back on if
+you want Cloudflare in front. If you do, set **SSL/TLS → Overview → Full
+(strict)** in Cloudflare. The default *Flexible* mode talks plain HTTP to the
+origin, which fights Caddy's automatic HTTP-to-HTTPS redirect and produces a
+redirect loop.
 
 ---
 
