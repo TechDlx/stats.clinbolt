@@ -79,7 +79,13 @@ install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 755 "$APP_ROOT"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 755 "$APP_ROOT/pipeline"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 755 "$APP_ROOT/cache"
 install -d -o "$SERVICE_USER" -g "$SERVICE_USER" -m 755 "$SITE_ROOT"
-install -d -o root -g root -m 755 /var/log/caddy
+# Caddy runs as its own user and writes the access log here, so this directory
+# must belong to it.  The apt package creates it correctly; do not take it away.
+if id -u caddy >/dev/null 2>&1; then
+  install -d -o caddy -g caddy -m 755 /var/log/caddy
+else
+  install -d -m 755 /var/log/caddy
+fi
 
 # --------------------------------------------------------------- 5. venv
 log "Creating the Python virtualenv"
@@ -153,9 +159,26 @@ if caddy validate --config /etc/caddy/Caddyfile >/dev/null 2>&1; then
 else
   die "the Caddyfile failed validation; not restarting Caddy."
 fi
-systemctl enable --now caddy >/dev/null
-systemctl reload caddy || systemctl restart caddy
-log "Caddy is running"
+systemctl enable caddy >/dev/null 2>&1 || true
+
+# The apt package already starts Caddy with its default config, so on a re-run
+# this is a reload rather than a start.  A reload can fail on a config it has
+# not seen before; fall back to a full restart, and report what actually
+# happened instead of assuming it worked.
+if systemctl is-active --quiet caddy; then
+  systemctl reload caddy >/dev/null 2>&1 || systemctl restart caddy >/dev/null 2>&1 || true
+else
+  systemctl start caddy >/dev/null 2>&1 || true
+fi
+
+if systemctl is-active --quiet caddy; then
+  log "Caddy is running"
+else
+  warn "Caddy is NOT running. Inspect it with:"
+  warn "    sudo systemctl status caddy --no-pager"
+  warn "    sudo journalctl -xeu caddy -n 50 --no-pager"
+  warn "Continuing; the rest of the setup does not depend on Caddy being up."
+fi
 
 # --------------------------------------------------------------- 8. systemd
 log "Installing the refresh service and weekly timer"
